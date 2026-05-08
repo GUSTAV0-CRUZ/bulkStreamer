@@ -4,12 +4,13 @@
 
 ## 🛑 O Problema
 
-Em aplicações corporativas reais (como transações bancárias ou sincronização de estoques), é comum precisarmos processar arquivos CSV/TXT gigantescos, com milhões de linhas. 
+Em aplicações corporativas reais (como integrações bancárias, migração de dados ou sincronização de estoques), é muito comum a necessidade de processar arquivos massivos contendo milhões de registros.
 
-A abordagem tradicional de leitura carrega o arquivo inteiro na memória RAM de uma só vez. No ecossistema Node.js, isso gera dois problemas fatais:
-1. **Estouro de Memória:** O motor V8 atinge seu limite de RAM, fazendo a aplicação falhar com o erro *Out of Memory*.
-2. **Bloqueio do Event Loop:** Processar milhões de dados de forma síncrona trava a thread principal, fazendo com que o sistema congele e pare de responder a outros usuários.
+A abordagem ingênua e tradicional consiste em carregar o arquivo inteiro na memória do servidor de uma só vez para depois processá-lo. Independentemente da linguagem de programação utilizada, essa prática gera problemas críticos de infraestrutura:
 
+1. **Estouro de Memória:** Servidores possuem limites físicos de RAM. Tentar alocar um arquivo de múltiplos Gigabytes na memória fatalmente causará a quebra (*crash*) da aplicação.
+2. **Degradação de Performance e Bloqueio:** Processar milhões de dados simultaneamente monopoliza os recursos de CPU e bloqueia as *threads* de execução, fazendo com que o sistema como um todo sofra lentidão ou pare de responder a outros usuários.
+3. **Falta de Resiliência:** Se houver uma falha estrutural no meio do lote, todo o processamento é perdido e o sistema precisa recomeçar do zero.
 ## 🏗️ Arquitetura e Modelagem de Domínio
 
 Para resolver esse gargalo, a solução foi desenhada com foco em **Eficiência de Memória** e **Isolamento Arquitetural**. O fluxo processa os dados de forma assíncrona ("gota a gota"), enquanto o Domínio da aplicação garante as regras de negócio de forma totalmente isolada da infraestrutura de leitura de arquivos.
