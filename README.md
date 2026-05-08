@@ -4,33 +4,34 @@
 ![Node.js](https://img.shields.io/badge/Node.js-Advanced-339933?logo=node.js&logoColor=white)
 ![NestJS](https://img.shields.io/badge/NestJS-TypeScript-E0234E?logo=nestjs&logoColor=white)
 
-Um microsserviço focado em alta performance para o processamento de arquivos gigantes (na casa dos Gigabytes), utilizando baixo consumo de memória e paralelismo real no ecossistema Node.js.
+Uma aplicação backend focada em alta performance para o processamento de arquivos gigantes (na casa dos Gigabytes), utilizando baixo consumo de memória e a API nativa de Streams do ecossistema Node.js.
 
 ## 🛑 O Problema
 
 Em aplicações corporativas reais (como transações bancárias, migração de dados ou sincronização de estoques), é comum precisarmos processar arquivos CSV/TXT com milhões de linhas. 
 
 A abordagem tradicional de upload e leitura carrega o arquivo inteiro na memória RAM. No Node.js, isso gera dois problemas fatais:
-1. **Estouro de Memória:** O motor V8 tem limites rígidos de memória, fazendo a aplicação "crashar" (Out of Memory).
-2. **Bloqueio do Event Loop:** Processar milhares de dados de forma síncrona trava a thread principal, fazendo com que a API pare de responder a todos os outros usuários.
+1. **Estouro de Memória:** O motor V8 tem limites rígidos de memória, fazendo a aplicação falhar (Out of Memory).
+2. **Bloqueio do Event Loop:** Processar milhares de dados de forma síncrona trava a thread principal, fazendo com que o sistema congele e pare de responder a outros processos.
 
 ## 🎯 Objetivo e Solução
 
-O objetivo deste projeto é resolver esse gargalo clássico de infraestrutura. A aplicação atua como um pipeline de dados que consegue processar arquivos infinitamente grandes mantendo o consumo de RAM estável (abaixo de 100MB).
+O objetivo deste projeto é atuar como um robusto pipeline **ETL (Extract, Transform, Load)** que consegue processar arquivos infinitamente grandes mantendo o consumo de RAM estável (geralmente abaixo de 100MB).
 
-Para isso, a arquitetura utiliza:
-- **Streams:** Para ler e fatiar o arquivo sob demanda (gota a gota), descartando da memória o que já foi lido.
-- **Worker Threads:** Para retirar o processamento pesado da thread principal e distribuir as linhas do arquivo em processamento paralelo nos outros núcleos do servidor.
+Para resolver o gargalo de infraestrutura, a arquitetura utiliza a abordagem "gota a gota":
+- **Read Streams:** Para ler e fatiar o arquivo sob demanda.
+- **Transform Streams:** Para higienizar, validar ou formatar os dados em tempo real (on-the-fly).
+- **Write Streams:** Para despejar os dados processados no destino final, descartando da memória o que já foi operado.
 
 ## 🧠 Conceitos e Desafios Técnicos Explorados
 
 - Arquitetura de Pipelines e Streams no Node.js
-- Multithreading em JavaScript (Worker Threads)
-- Controle de Backpressure (evitar que a leitura afogue o processamento)
-- Processamento e inserção em lotes (Batch Processing)
+- Manipulação assíncrona de I/O (Input/Output)
+- Controle de Backpressure (evitar que a leitura afogue o processamento e a escrita)
+- Gerenciamento de memória e Event Loop
 
 ## 🛠️ Tecnologias Utilizadas
 
 - **TypeScript**
-- **NestJS**
-- **Node.js API Nativa**
+- **NestJS** (Base estrutural)
+- **Node.js APIs Nativas** (`fs`, `stream`)
