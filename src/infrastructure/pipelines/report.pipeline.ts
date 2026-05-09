@@ -4,29 +4,44 @@ import { Transform, TransformCallback } from 'stream';
 import path from 'path';
 import { Transaction } from '../../domain/entities/Transaction';
 import { Logger } from '@nestjs/common';
-
-const csvPath = path.resolve(__dirname, '../../../mediun-transactions.csv');
+import { ReportJson } from './types/report-json.type';
 
 export class ReportPipeline {
   private static logger = new Logger(ReportPipeline.name);
+  private static pathRoot = path.resolve(__dirname, '../../../storage/report');
 
   static async generete(buffer: Buffer | string) {
+    const reportInJson: ReportJson = {
+      transactions: 0,
+      accepted: 0,
+      rejected: 0,
+      executionTime: '',
+    };
+
+    const reportDate = new Date().toJSON();
+    const pathTransactionAccepted = `${this.pathRoot}/acceted_transactions-${reportDate}.csv`;
+    const pathTransactionRejecte = `${this.pathRoot}/rejected_transactions-${reportDate}.csv`;
+    const pathReport = `${this.pathRoot}/report-${reportDate}.csv`;
+
     try {
       const readedFile = fs.createReadStream(buffer);
 
-      const transactionAccepted = fs.createWriteStream(
-        'acceted_transactions.csv',
-      );
-      const transactionRejecte = fs.createWriteStream(
-        'rejected_transactions.csv',
-      );
+      const transactionAccepted = fs.createWriteStream(pathTransactionAccepted);
+      const transactionRejecte = fs.createWriteStream(pathTransactionRejecte);
+      const reportWrite = fs.createWriteStream(pathReport);
 
       const transform = this.transformReport(
         transactionAccepted,
         transactionRejecte,
+        reportWrite,
+        reportInJson,
       );
 
+      const executionTimeStart = Date.now();
       await pipeline(readedFile, transform);
+      reportInJson.executionTime = `${Date.now() - executionTimeStart}ms`;
+
+      return reportInJson;
     } catch (error: any) {
       this.logger.error('Erro in proccess pipeline: ', {
         error: JSON.stringify(error),
@@ -37,6 +52,8 @@ export class ReportPipeline {
   private static transformReport(
     transactionAcceptedWrite: WriteStream,
     transactionRejecteWrite: WriteStream,
+    reportWrite: WriteStream,
+    reportInJson: ReportJson,
   ): Transform {
     let lastLine: string = '';
 
@@ -49,6 +66,7 @@ export class ReportPipeline {
         const transactionRejected: Array<string> = [];
 
         lines.forEach((line) => {
+          reportInJson.transactions += 1;
           const transaction = ReportPipeline.createTransactionPerLine(line);
 
           const lineInString =
@@ -56,8 +74,10 @@ export class ReportPipeline {
 
           if (transaction.isApproved()) {
             transactionAccepted.push(lineInString);
+            reportInJson.accepted += 1;
             return;
           }
+          reportInJson.rejected += 1;
           transactionRejected.push(lineInString);
         });
 
@@ -72,6 +92,12 @@ export class ReportPipeline {
         callback(null, '\n');
       },
       flush(callback) {
+        const report = ReportPipeline.reportInGeral(
+          reportInJson.transactions,
+          reportInJson.accepted,
+          reportInJson.rejected,
+        );
+
         if (lastLine) {
           const lastTransaction =
             ReportPipeline.createTransactionPerLine(lastLine);
@@ -82,12 +108,15 @@ export class ReportPipeline {
           ]);
 
           if (lastTransaction.isApproved()) {
+            reportInJson.accepted += 1;
             transactionAcceptedWrite.write(lineInBuffer);
+            reportWrite.write(report);
             return callback();
           }
-
+          reportInJson.rejected += 1;
           transactionRejecteWrite.write(lineInBuffer);
         }
+        reportWrite.write(report);
         callback();
       },
     });
@@ -117,9 +146,14 @@ export class ReportPipeline {
   private static createLinePerTrasacntion(transaction: Transaction) {
     return `${transaction.getTransaction_id()},${transaction.getAccount_id()},${transaction.getAmount()},${transaction.getTransaction_type()},${transaction.getTimestamp()},${transaction.getRejection_reason()}\n`;
   }
+
+  private static reportInGeral(
+    numberTransactions: number,
+    numberTransactionsAccepted: number,
+    numberTransactionsRejected: number,
+  ) {
+    const header = 'Transactions,Accepted,Rejected,ReportDate\n';
+    const report = `${numberTransactions},${numberTransactionsAccepted},${numberTransactionsRejected},${new Date().toJSON()}`;
+    return ReportPipeline.arrayStringToBuffer([header, report]);
+  }
 }
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const teste = ReportPipeline.generete(csvPath).then((t) => t);
-
-// console.log(teste);
