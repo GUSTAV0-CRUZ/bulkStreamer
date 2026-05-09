@@ -29,7 +29,7 @@ export class Transaction {
       this.rejection_reason = 'Corrupted transaction: Invalid amount';
       return false;
     }
-    if (!this.timestamp) {
+    if (!this.timestamp || isNaN(this.timestamp?.getTime())) {
       this.status = StatusTransactionEnum.REJECTED;
       this.rejection_reason = 'Corrupted transaction: Invalid timestamp';
       return false;
@@ -68,6 +68,6 @@ export class Transaction {
   }
 
   getTimestamp(): string {
-    return this.timestamp ? this.timestamp.toISOString() : '';
+    return this.timestamp ? this.timestamp.toJSON() : '';
   }
 }
