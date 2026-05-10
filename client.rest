@@ -1,0 +1,10 @@
+POST /report HTTP/1.1
+Host: localhost:3000
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="sample-transactions.csv"
+Content-Type: text/csv
+
+< ./testes/mediun-transactions.csv
+--boundary--

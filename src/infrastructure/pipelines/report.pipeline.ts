@@ -5,47 +5,59 @@ import path from 'path';
 import { Transaction } from '../../domain/entities/Transaction';
 import { Logger } from '@nestjs/common';
 import { ReportJson } from './types/report-json.type';
+import { Request } from 'express';
+import Busboy from 'busboy';
+import { once } from 'events';
 
 export class ReportPipeline {
   private static logger = new Logger(ReportPipeline.name);
-  private static pathRoot = path.resolve(__dirname, '../../../storage/report');
+  private static pathRoot = path.resolve(
+    __dirname,
+    '../../../../storage/report',
+  );
 
-  static async generete(buffer: Buffer | string) {
+  static async generete(request: Request) {
     const reportInJson: ReportJson = {
       transactions: 0,
       accepted: 0,
       rejected: 0,
       executionTime: '',
     };
-
     const reportDate = new Date().toJSON();
     const pathTransactionAccepted = `${this.pathRoot}/acceted_transactions-${reportDate}.csv`;
     const pathTransactionRejecte = `${this.pathRoot}/rejected_transactions-${reportDate}.csv`;
     const pathReport = `${this.pathRoot}/report-${reportDate}.csv`;
+    const transactionAccepted = fs.createWriteStream(pathTransactionAccepted);
+    const transactionRejecte = fs.createWriteStream(pathTransactionRejecte);
+    const reportWrite = fs.createWriteStream(pathReport);
+    const transform = this.transformReport(
+      transactionAccepted,
+      transactionRejecte,
+      reportWrite,
+      reportInJson,
+    );
+    const busboy = Busboy({ headers: request.headers });
 
     try {
-      const readedFile = fs.createReadStream(buffer);
+      request.pipe(busboy);
 
-      const transactionAccepted = fs.createWriteStream(pathTransactionAccepted);
-      const transactionRejecte = fs.createWriteStream(pathTransactionRejecte);
-      const reportWrite = fs.createWriteStream(pathReport);
-
-      const transform = this.transformReport(
-        transactionAccepted,
-        transactionRejecte,
-        reportWrite,
-        reportInJson,
-      );
+      const [, file] = (await once(busboy, 'file')) as [
+        name: string,
+        file: Buffer,
+      ];
 
       const executionTimeStart = Date.now();
-      await pipeline(readedFile, transform);
+      await pipeline(file, transform);
       reportInJson.executionTime = `${Date.now() - executionTimeStart}ms`;
 
       return reportInJson;
     } catch (error: any) {
-      this.logger.error('Erro in proccess pipeline: ', {
-        error: JSON.stringify(error),
-      });
+      this.logger.error(
+        `Error in pipeline processes in transaction: (${reportInJson.transactions}) `,
+        {
+          error: JSON.stringify(error),
+        },
+      );
     }
   }
 
