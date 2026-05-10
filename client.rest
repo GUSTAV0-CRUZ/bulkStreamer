@@ -3,10 +3,10 @@ Host: localhost:3000
 Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
-Content-Disposition: form-data; name="file"; filename="mediun-transactions.csv"
+Content-Disposition: form-data; name="file"; filename="massive-transactions.csv"
 Content-Type: text/csv
 
-< ./testes/mediun-transactions.csv
+< ./testes/massive-transactions.csv
 --boundary--
 
 ###
