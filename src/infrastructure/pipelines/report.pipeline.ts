@@ -3,9 +3,9 @@ import { pipeline } from 'stream/promises';
 import { Transform, TransformCallback } from 'stream';
 import path from 'path';
 import { Transaction } from '../../domain/entities/Transaction';
-import { BadRequestException, Logger } from '@nestjs/common';
+import { BadRequestException, Logger, StreamableFile } from '@nestjs/common';
 import { ReportJson } from './types/report-json.type';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import Busboy from 'busboy';
 import { once } from 'events';
 
@@ -15,6 +15,17 @@ export class ReportPipeline {
     __dirname,
     '../../../../storage/report',
   );
+
+  static dowloadFile(response: Response, filename: string) {
+    const report = fs.createReadStream(`${this.pathRoot}/${filename}.csv`);
+
+    response.set({
+      'Content-Type': 'text/csv',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+    });
+
+    return new StreamableFile(report);
+  }
 
   static async generete(request: Request) {
     const reportInJson: ReportJson = {

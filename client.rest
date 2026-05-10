@@ -3,8 +3,16 @@ Host: localhost:3000
 Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
-Content-Disposition: form-data; name="file"; filename="sample-transactions.csv"
+Content-Disposition: form-data; name="file"; filename="mediun-transactions.csv"
 Content-Type: text/csv
 
-< ./testes/massive-transactions.csv
+< ./testes/mediun-transactions.csv
 --boundary--
+
+###
+GET /report HTTP/1.1
+Host: localhost:3000
+
+###
+GET /report/report-2026-05-10T20:59:56.141Z/dowload HTTP/1.1
+Host: localhost:3000
