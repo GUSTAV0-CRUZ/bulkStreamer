@@ -81,6 +81,16 @@ npm run start:dev
 ```
 ---
 
+## 📍 Endpoints da API
+
+A API expõe as seguintes rotas para processamento e resgate dos arquivos:
+
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/report` | Envia o arquivo CSV via `multipart/form-data` e inicia o processamento ETL. |
+| `GET` | `/report` | Lista todos os arquivos (relatórios) já processados e salvos no storage. |
+| `GET` | `/report/:filename/download` | Faz o download via stream de um relatório específico gerado. |
+
 ## 🛠️ Stack Tecnológica
 
 | Categoria | Tecnologia |

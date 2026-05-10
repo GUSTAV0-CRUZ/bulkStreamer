@@ -28,7 +28,7 @@ export class ReportController {
     return report;
   }
 
-  @Get('/:filename/dowload')
+  @Get('/:filename/download')
   dowloadReportPerName(
     @Param('filename') filename: string,
     @Res({ passthrough: true }) res: Response,
