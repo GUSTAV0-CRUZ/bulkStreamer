@@ -61,6 +61,10 @@ export class ReportPipeline {
       throw new BadRequestException(
         `Error in pipeline processes in transaction: (${reportInJson.transactions})`,
       );
+    } finally {
+      transactionAccepted.end();
+      transactionRejecte.end();
+      reportWrite.end();
     }
   }
 
