@@ -3,7 +3,7 @@ import { pipeline } from 'stream/promises';
 import { Transform, TransformCallback } from 'stream';
 import path from 'path';
 import { Transaction } from '../../domain/entities/Transaction';
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import { ReportJson } from './types/report-json.type';
 import { Request } from 'express';
 import Busboy from 'busboy';
@@ -57,6 +57,9 @@ export class ReportPipeline {
         {
           error: JSON.stringify(error),
         },
+      );
+      throw new BadRequestException(
+        `Error in pipeline processes in transaction: (${reportInJson.transactions})`,
       );
     }
   }
