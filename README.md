@@ -109,6 +109,10 @@ A API expõe as seguintes rotas para processamento e resgate dos arquivos:
 <img src="https://github.com/GUSTAV0-CRUZ.png" width="100px;" />
 
 **Gustavo Cruz**  
-💼 Backend Developer  
-📧 gustavo.cruzs.dev@gmail.com  
+📧 gustavo.cruzs.dev@gmail.com
+
 🔗 https://github.com/GUSTAV0-CRUZ
+
+🔗 https://www.linkedin.com/in/gustavo-cruz-4a467b377
+
+---
